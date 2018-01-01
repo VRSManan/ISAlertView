@@ -16,10 +16,11 @@
 @protocol ISAlertViewDelegate
 
 - (void)customIOS7dialogButtonTouchUpInside:(id)alertView clickedButtonAtIndex:(NSInteger)buttonIndex;
+- (void)didTapOnOutside;
 
 @end
 
-@interface ISAlertView : UIView
+@interface ISAlertView : UIView <UIGestureRecognizerDelegate>
 
 @property (nonatomic, retain) UIView *parentView;    // The parent view this 'dialog' is attached to
 @property (nonatomic, retain) UIView *dialogView;    // Dialog's container view
@@ -28,6 +29,8 @@
 @property (nonatomic, assign) id<ISAlertViewDelegate> delegate;
 @property (nonatomic, retain) NSArray *buttonTitles;
 @property (nonatomic, assign) BOOL useMotionEffects;
+@property (nonatomic, assign) BOOL useBorder;
+@property (nonatomic, assign) BOOL clipToBounds;
 
 @property (copy) void (^onButtonTouchUpInside)(ISAlertView *alertView, int buttonIndex) ;
 

@@ -19,7 +19,7 @@ const static CGFloat kCustomIOS7AlertViewDefaultButtonSpacerHeight = 1;
 const static CGFloat kCustomIOS7AlertViewCornerRadius              = 7;
 const static CGFloat kCustomIOS7MotionEffectExtent                 = 10.0;
 
-@implementation ISAlertView
+@implementation ISAlertView 
 
 CGFloat buttonHeight = 0;
 CGFloat buttonSpacerHeight = 0;
@@ -28,6 +28,8 @@ CGFloat buttonSpacerHeight = 0;
 @synthesize delegate;
 @synthesize buttonTitles;
 @synthesize useMotionEffects;
+@synthesize useBorder;
+@synthesize clipToBounds;
 
 - (instancetype)initWithParentView: (UIView *)_parentView
 {
@@ -47,8 +49,10 @@ CGFloat buttonSpacerHeight = 0;
 
         useMotionEffects = false;
         buttonTitles = @[@"Close"];
-
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
+        useBorder = true;
+        clipToBounds = true;
+        
+//        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     }
@@ -58,6 +62,11 @@ CGFloat buttonSpacerHeight = 0;
 // Create the dialog view, and animate opening the dialog
 - (void)show
 {
+    
+    UITapGestureRecognizer *tapOnDialog = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tappedOutside)];
+    [tapOnDialog setDelegate:self];
+    [self addGestureRecognizer:tapOnDialog];
+    
     dialogView = [self createContainerView];
 
     dialogView.layer.shouldRasterize = YES;
@@ -136,6 +145,17 @@ CGFloat buttonSpacerHeight = 0;
     }
 }
 
+- (void)tappedOutside {
+    [[self delegate] didTapOnOutside];
+}
+
+// Condition to tap outside
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    return touch.view == self;
+}
+
 // Dialog close animation then cleaning and removing the view from the parent
 - (void)close
 {
@@ -195,8 +215,12 @@ CGFloat buttonSpacerHeight = 0;
     [dialogContainer.layer insertSublayer:gradient atIndex:0];
 
     dialogContainer.layer.cornerRadius = cornerRadius;
-    dialogContainer.layer.borderColor = [[UIColor colorWithRed:198.0/255.0 green:198.0/255.0 blue:198.0/255.0 alpha:1.0f] CGColor];
-    dialogContainer.layer.borderWidth = 1;
+    
+    if (useBorder) {
+        dialogContainer.layer.borderColor = [[UIColor colorWithRed:198.0/255.0 green:198.0/255.0 blue:198.0/255.0 alpha:1.0f] CGColor];
+        dialogContainer.layer.borderWidth = 1;
+    }
+    dialogContainer.clipsToBounds = clipToBounds;
     dialogContainer.layer.shadowRadius = cornerRadius + 5;
     dialogContainer.layer.shadowOpacity = 0.1f;
     dialogContainer.layer.shadowOffset = CGSizeMake(0 - (cornerRadius+5)/2, 0 - (cornerRadius+5)/2);
@@ -220,7 +244,7 @@ CGFloat buttonSpacerHeight = 0;
 
     // Add the custom container if there is any
     [dialogContainer addSubview:containerView];
-
+    
     // Add the buttons too
     [self addButtonsToView:dialogContainer];
 
